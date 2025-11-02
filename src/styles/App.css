@@ -1,0 +1,51 @@
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 15px;
+  margin-top: 60px;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px 0;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.app-title {
+  color: #333;
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+
+.app-subtitle {
+  color: #666;
+  font-size: 1.2em;
+}
