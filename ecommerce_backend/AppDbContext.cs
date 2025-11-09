@@ -10,6 +10,7 @@ namespace E_commerce
         }
 
         public DbSet<Products> Products { get; set; }
+        public DbSet<Models.Entities.User> Users { get; set; }
 
     }
 }

@@ -1,9 +1,8 @@
 ﻿using E_commerce.Models;
 using E_commerce.Models.Entities;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
 
 namespace E_commerce.Controllers
 {
@@ -11,31 +10,37 @@ namespace E_commerce.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly AppDbContext dbContext;
+        private readonly AppDbContext _dbContext;
 
         public ProductsController(AppDbContext dbContext)
         {
-            this.dbContext = dbContext;
+            _dbContext = dbContext;
         }
 
+        // GET: api/Products
         [HttpGet]
         public async Task<IActionResult> GetAllProducts()
         {
-            var result = await dbContext.Products.ToListAsync();
-            return Ok(result);
+            var products = await _dbContext.Products.ToListAsync();
+            return Ok(products);
         }
 
+        // GET: api/Products/{id}
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetProductById(int id)
         {
-            var result = await dbContext.Products.FindAsync(id);
-            if (result is null) return NotFound();
-            return Ok(result);
+            var product = await _dbContext.Products.FindAsync(id);
+            if (product == null) return NotFound(new { message = "Product not found" });
+            return Ok(product);
         }
 
+        // POST: api/Products
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> AddProduct(AddProducts addProducts)
+        public async Task<IActionResult> AddProduct([FromBody] AddProducts addProducts)
         {
+            if (addProducts == null) return BadRequest("Invalid product data");
+
             var product = new Products
             {
                 Name = addProducts.Name,
@@ -44,38 +49,40 @@ namespace E_commerce.Controllers
                 StockQuantity = addProducts.StockQuantity
             };
 
-            await dbContext.Products.AddAsync(product);
-            await dbContext.SaveChangesAsync();
+            await _dbContext.Products.AddAsync(product);
+            await _dbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, product);
+        }
+
+        // PUT: api/Products/{id}
+        [Authorize]
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProducts updateProducts)
+        {
+            var product = await _dbContext.Products.FindAsync(id);
+            if (product == null) return NotFound(new { message = "Product not found" });
+
+            product.Name = updateProducts.Name;
+            product.Description = updateProducts.Description;
+            product.Price = updateProducts.Price;
+            product.StockQuantity = updateProducts.StockQuantity;
+
+            await _dbContext.SaveChangesAsync();
             return Ok(product);
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateProduct(int id, UpdateProducts updateProducts)
-        {
-            var productToUpdate = await dbContext.Products.FindAsync(id);
-            if (productToUpdate is null) return NotFound();
-
-            productToUpdate.Name = updateProducts.Name;
-            productToUpdate.Description = updateProducts.Description;
-            productToUpdate.Price = updateProducts.Price;
-            productToUpdate.StockQuantity = updateProducts.StockQuantity;
-
-            await dbContext.SaveChangesAsync();
-            return Ok(productToUpdate);
-        }
-
+        // DELETE: api/Products/{id}
+        [Authorize]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            var productToDelete = await dbContext.Products.FindAsync(id);
-            if (productToDelete is null) return NotFound();
+            var product = await _dbContext.Products.FindAsync(id);
+            if (product == null) return NotFound(new { message = "Product not found" });
 
-            dbContext.Products.Remove(productToDelete);
-            await dbContext.SaveChangesAsync();
-            return Ok(productToDelete);
+            _dbContext.Products.Remove(product);
+            await _dbContext.SaveChangesAsync();
+            return Ok(new { message = "Product deleted successfully" });
         }
-
-
-
     }
 }
